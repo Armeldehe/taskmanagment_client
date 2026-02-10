@@ -33,7 +33,7 @@ const TodoListItem = ({ todo, ...props }) => {
         title={completed ? "Marquer comme incomplet" : "Marquer comme complété"}
       >
         {completed && (
-          <i className="fas fa-check text-white text-sm font-bold"></i>
+          <i className="fas fa-check text-black text-sm font-bold"></i>
         )}
       </button>
       <p

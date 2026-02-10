@@ -1,7 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const URL = 'http://localhost:3000'
+// const URL = 'http://localhost:3000'
+const URL = import.meta.env.VITE_URL
+
 
 
 const initialState = {
