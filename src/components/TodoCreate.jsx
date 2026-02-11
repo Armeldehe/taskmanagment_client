@@ -28,7 +28,7 @@ const TodoCreate = () => {
     >
       <div className="flex items-center gap-4">
         <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white hover:scale-110 transition-transform duration-300">
-          <i className="fas fa-plus"></i>
+          <span className="text-2xl font-bold">+</span>
         </div>
         <input
           type="text"
@@ -38,11 +38,20 @@ const TodoCreate = () => {
           onChange={(e) => setDesc(e.target.value)}
         />
         <button
+          type="button"
+          onClick={() => setDesc("")}
+          disabled={!desc.trim()}
+          className="flex-shrink-0 w-10 h-10 rounded-full bg-white/90 text-indigo-600 shadow-md border border-white/80 flex items-center justify-center text-lg font-bold hover:bg-white hover:text-purple-700 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Effacer le texte"
+        >
+          ✕
+        </button>
+        <button
           type="submit"
           disabled={!desc.trim()}
           className="flex-shrink-0 px-6 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100"
         >
-          <i className="fas fa-arrow-right"></i>
+          <span className="text-lg">→</span>
         </button>
       </div>
     </form>

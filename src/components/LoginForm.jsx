@@ -89,9 +89,9 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPwd(!showPwd)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-600 shadow-md border border-white/80 hover:bg-indigo-50 hover:text-purple-700 transition-colors text-lg font-bold"
             >
-              <i className={`fa ${!showPwd ? "fa-eye" : "fa-eye-slash"} `}></i>
+              {showPwd ? "✕" : "👁"}
             </button>
 
             {errors.password && errors.password.type === "required" && (
@@ -124,7 +124,7 @@ function LoginForm() {
           </div>
           <Link
             to="/security/register"
-            className="w-full text-center bg-white/10 hover:bg-white/20 text-white font-semibold py-3 rounded-lg border border-white/30 transition-all duration-300 transform hover:scale-105"
+            className="w-full text-center bg-white text-indigo-600 font-semibold py-3 rounded-lg shadow-lg border border-white/80 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-300 transform hover:scale-105"
           >
             Créer un compte
           </Link>

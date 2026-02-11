@@ -1,5 +1,5 @@
-import React, { forwardRef } from "react";
-import { IconCheck, IconCross } from "./icons";
+import React from "react";
+import { IconCross } from "./icons";
 import { useDispatch } from "react-redux";
 import { deleteTask, updateTask } from "../redux/slices/taskSlice";
 
@@ -25,16 +25,20 @@ const TodoListItem = ({ todo, ...props }) => {
       <button
         onClick={() => toggleTodo(todo)}
         type="button"
-        className={`flex-shrink-0 h-7 w-7 rounded-full transition-all duration-300 transform cursor-pointer flex items-center justify-center ${
+        className={`flex-shrink-0 h-8 w-8 rounded-full transition-all duration-300 transform cursor-pointer flex items-center justify-center border ${
           completed
-            ? "bg-gradient-to-r from-green-400 to-emerald-500 shadow-lg shadow-green-500/60 scale-110 ring-2 ring-green-300/50"
-            : "border-3 border-blue-400/60 hover:border-blue-300 hover:bg-blue-500/20 group-hover:border-blue-400 group-hover:scale-110"
+            ? "bg-gradient-to-r from-emerald-400 to-green-500 border-transparent shadow-lg shadow-emerald-500/60 scale-110"
+            : "border-blue-300 bg-blue-500/10 hover:bg-blue-500/25 group-hover:border-blue-200 group-hover:scale-110"
         }`}
         title={completed ? "Marquer comme incomplet" : "Marquer comme complété"}
       >
-        {completed && (
-          <i className="fas fa-check text-black text-sm font-bold"></i>
-        )}
+        <span
+          className={`text-sm font-bold ${
+            completed ? "text-white" : "text-blue-200"
+          }`}
+        >
+          ✓
+        </span>
       </button>
       <p
         className={`flex-1 text-lg pt-0.5 transition-all duration-300 ${
@@ -47,10 +51,10 @@ const TodoListItem = ({ todo, ...props }) => {
       </p>
       <button
         onClick={handdleDelete}
-        className="flex-shrink-0 p-2.5 rounded-lg bg-red-500/30 hover:bg-red-500/50 text-red-400 hover:text-red-200 transition-all duration-300 transform hover:scale-110 ring-2 ring-red-500/40 hover:ring-red-400/60 font-bold"
+        className="flex-shrink-0 p-2.5 rounded-lg bg-red-600/80 hover:bg-red-500 text-white transition-all duration-300 transform hover:scale-110 shadow-md shadow-red-500/40"
         title="Supprimer la tâche"
       >
-        <i className="fas fa-trash-alt text-base"></i>
+        <IconCross fill="#FECACA" />
       </button>
     </article>
   );
