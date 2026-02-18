@@ -5,6 +5,7 @@ import Home from './pages/home'
 import PrivateRoute from './pages/privateRoute'
 import Login from './pages/login'
 import Register from './pages/register'
+import Activation from './pages/activation'
 
 function App() {
 
@@ -25,6 +26,8 @@ function App() {
           <Route index element={<Navigate to="login" />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="activation" element={<Activation />} />
+
         </Route>
         <Route path="*" element={<Navigate to="/" replace={true} />} />
       </Routes>

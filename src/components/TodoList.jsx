@@ -5,8 +5,8 @@ const TodoList = ({ tasks }) => {
   return (
     <div className="backdrop-blur-xl bg-white/5 border border-white/20 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       <div className="divide-y divide-white/10">
-        {tasks.map((todo, index) => (
-          <TodoListItem todo={todo} key={index} />
+        {tasks.map((todo) => (
+          <TodoListItem todo={todo} key={todo._id} />
         ))}
       </div>
       {tasks.length === 0 && (
