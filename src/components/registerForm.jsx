@@ -8,24 +8,15 @@ import {
 } from "../redux/slices/authSlice";
 import Spinner from "./spinner";
 import { useNavigate, Link } from "react-router-dom";
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, UserPlus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 function RegisterForm() {
   const [showPwd, setShowPwd] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    getValues,
-  } = useForm();
-
+  const { register: formRegister, handleSubmit, formState: { errors } } = useForm();
   const { status, message } = useSelector(getState);
-
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
-
-  const backToLogin = () => navigate("/security/login");
 
   const onHandleSubmit = (data) => {
     dispatch(createAccount(data));
@@ -37,177 +28,180 @@ function RegisterForm() {
         dispatch(setStatusToIdle());
       }, 6000);
     }
-    // navigate("/security/login")
-  }, [status]);
+  }, [status, dispatch]);
 
   return (
     <div className="w-full">
-      {status === "failed" && message && (
-        <div className="mb-4 animate-in fade-in duration-500 bg-red-500/20 border border-red-500/50 rounded-lg p-3">
-          <p className="text-red-100 text-sm font-medium">{message}</p>
-        </div>
-      )}
-      {status === "success" && message && (
-        <div className="mb-4 animate-in fade-in duration-500 bg-green-500/20 border border-green-500/50 rounded-lg p-3">
-          <p className="text-green-100 text-sm font-medium">{message}</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {status === "failed" && message && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4 backdrop-blur-md"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                <span className="text-red-400 font-bold">!</span>
+              </div>
+              <p className="text-red-200/90 text-sm font-medium">{message}</p>
+            </div>
+          </motion.div>
+        )}
+        
+        {status === "success" && message && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 backdrop-blur-md"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                <span className="text-emerald-400 font-bold">✓</span>
+              </div>
+              <p className="text-emerald-200/90 text-sm font-medium">{message}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {status === "loading" && (
-        <div className="mb-4">
+        <div className="mb-6 flex justify-center">
           <Spinner />
         </div>
       )}
-      <form onSubmit={handleSubmit(onHandleSubmit)}>
-        <div className="flex flex-col justify-center items-center gap-5 w-full">
-          <div className="relative w-full">
-            <input
-              type="text"
-              name="email"
-              {...register("email", {
-                required: "Email obligatore",
-                pattern: {
-                  value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/,
-                  message: "Email invalide",
-                },
-              })}
-              className="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
-              placeholder="Email"
-            />
-            {errors.email && errors.email.type === "required" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.email.message}
-              </p>
-            )}
-            {errors.email && errors.email.type === "pattern" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-          <div className="relative w-full">
-            <input
-              type="text"
-              name="name"
-              {...register("name", {
-                required: "Veuillez entrer votre nom",
-                maxLength: {
-                  value: 15,
-                  message: "Le nom doit tenir sur 15 caracteres maximum.",
-                },
-              })}
-              className="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
-              placeholder="Votre nom"
-            />
-            {errors.name && errors.name.type === "required" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.name.message}
-              </p>
-            )}
-            {errors.name && errors.name.type === "maxLength" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
-          <div className="relative w-full">
-            <input
-              type={showPwd ? "text" : "password"}
-              name="password"
-              {...register("password", {
-                required: "entrez votre mot de passe",
-                minLength: {
-                  value: 6,
-                  message: "le mot de passe doit avoir 6 caractères au moins",
-                },
-                maxLength: {
-                  value: 15,
-                  message: "le mot de passe doit avoir 15 caractères au plus",
-                },
-              })}
-              className="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
-              placeholder="Mot de passe"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPwd(!showPwd)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-600 shadow-md border border-white/80 hover:bg-indigo-50 hover:text-purple-700 transition-colors text-lg font-bold"
-            >
-              {showPwd ? "✕" : "👁"}
-            </button>
-            {errors.password && errors.password.type === "required" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.password.message}
-              </p>
-            )}
-            {errors.password && errors.password.type === "minLength" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.password.message}
-              </p>
-            )}
-            {errors.password && errors.password.type === "maxLength" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-          <div className="relative w-full">
-            <input
-              type={showPwd ? "text" : "password"}
-              name="cpassword"
-              {...register("cpassword", {
-                required: "Confirmer le mot de passe!",
-                validate: (value) => {
-                  const { password } = getValues();
-                  return (
-                    password === value ||
-                    "Les mots de passe doivent correspondre!"
-                  );
-                },
-              })}
-              className="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
-              placeholder="Confirmez le mot de passe"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPwd(!showPwd)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo-600 shadow-md border border-white/80 hover:bg-indigo-50 hover:text-purple-700 transition-colors text-lg font-bold"
-            >
-              {showPwd ? "✕" : "👁"}
-            </button>
-            {errors.cpassword && errors.cpassword.type === "required" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.cpassword.message}
-              </p>
-            )}
-            {errors.cpassword && errors.cpassword.type === "validate" && (
-              <p className="text-red-300 text-xs mt-1 font-medium">
-                {errors.cpassword.message}
-              </p>
-            )}
-          </div>
-        </div>
 
-        <div className="w-full flex flex-col gap-4 pt-4">
+      <form onSubmit={handleSubmit(onHandleSubmit)} className="space-y-4">
+        
+        {/* Email Field */}
+        <motion.div 
+          className="relative w-full group"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/40 group-focus-within:text-indigo-400 transition-colors duration-300">
+            <Mail size={20} />
+          </div>
+          <input
+            className="glass-input !pl-12"
+            type="text"
+            {...formRegister("email", {
+              required: "L'email est obligatoire",
+              pattern: {
+                value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/,
+                message: "Format d'email invalide",
+              },
+            })}
+            placeholder="Votre email"
+          />
+          <AnimatePresence>
+            {errors.email && (
+              <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="text-pink-400 text-xs mt-1.5 ml-2 font-medium flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-pink-400"></span>{errors.email.message}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Name Field */}
+        <motion.div 
+          className="relative w-full group"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/40 group-focus-within:text-purple-400 transition-colors duration-300">
+            <User size={20} />
+          </div>
+          <input
+            className="glass-input !pl-12"
+            type="text"
+            {...formRegister("name", {
+              required: "Votre nom est requis",
+              maxLength: {
+                value: 15,
+                message: "15 caractères maximum",
+              },
+            })}
+            placeholder="Votre nom d'utilisateur"
+          />
+          <AnimatePresence>
+            {errors.name && (
+              <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="text-pink-400 text-xs mt-1.5 ml-2 font-medium flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-pink-400"></span>{errors.name.message}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Password Field */}
+        <motion.div 
+          className="relative w-full group"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/40 group-focus-within:text-pink-400 transition-colors duration-300">
+            <Lock size={20} />
+          </div>
+          <input
+            className="glass-input !pl-12 !pr-[3.5rem]"
+            type={showPwd ? "text" : "password"}
+            {...formRegister("password", {
+              required: "Le mot de passe est obligatoire",
+              minLength: {
+                value: 6,
+                message: "6 caractères minimum",
+              },
+              maxLength: {
+                value: 15,
+                message: "15 caractères maximum",
+              },
+            })}
+            placeholder="Votre mot de passe"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPwd(!showPwd)}
+            className="absolute inset-y-0 right-0 pr-4 flex items-center text-white/40 hover:text-white transition-colors focus:outline-none"
+          >
+            {showPwd ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          <AnimatePresence>
+            {errors.password && (
+              <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="text-pink-400 text-xs mt-1.5 ml-2 font-medium flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-pink-400"></span>{errors.password.message}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Submit Button */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="pt-2">
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500/50 shadow-lg hover:shadow-xl"
+            disabled={status === "loading" || Object.keys(errors).length > 0}
+            className="group relative w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-gradient-to-r from-indigo-600 hover:from-indigo-700 to-purple-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0f172a] focus:ring-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
           >
-            S'inscrire
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-px bg-white/20"></div>
-            <span className="text-white/60 text-xs">
-              Vous avez déjà un compte?
+            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
+            <span className="relative flex items-center gap-2">
+              <UserPlus size={18} />
+              S'inscrire
             </span>
-            <div className="flex-1 h-px bg-white/20"></div>
-          </div>
-          <Link
-            to="/security/login"
-            className="w-full text-center bg-white text-indigo-600 font-semibold py-3 rounded-lg shadow-lg border border-white/80 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-300 transform hover:scale-105"
-          >
-            Retour au login
-          </Link>
-        </div>
+          </button>
+        </motion.div>
+        
+        {/* Link to Login */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }} className="text-center mt-5">
+          <p className="text-white/60 text-sm">
+            Vous avez déjà un compte ?{" "}
+            <Link to="/security/login" className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-300 hover:to-purple-300 transition-all">
+              Se connecter
+            </Link>
+          </p>
+        </motion.div>
       </form>
     </div>
   );

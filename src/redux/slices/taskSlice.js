@@ -1,25 +1,28 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// const URL = 'http://localhost:3000'
-const URL = import.meta.env.VITE_URL
+const URL = import.meta.env.VITE_URL;
 
-
+const getLocalDateString = (date = new Date()) => {
+  const offset = date.getTimezoneOffset();
+  const adjusted = new Date(date.getTime() - (offset * 60 * 1000));
+  return adjusted.toISOString().split('T')[0];
+};
 
 const initialState = {
   tasks: [],
   status: "idle", // idle, loading, success, failed
   error: "",
   filter: "all", // all, completed, active
+  searchQuery: "",
+  selectedDate: getLocalDateString(),
 };
 
 const getToken = () => localStorage.getItem("token");
 
 export const getTask = createAsyncThunk("task/getTask", async (userId) => {
-    const token = getToken();
-    console.log('Token dans getTask:', token);
   const { data } = await axios.get(`${URL}/api/v1/tasks/${userId}`, {
-    headers: { Authorization : getToken() },
+    headers: { Authorization: getToken() },
   });
   return data;
 });
@@ -27,26 +30,25 @@ export const getTask = createAsyncThunk("task/getTask", async (userId) => {
 export const createTask = createAsyncThunk(
   "task/createTask",
   async (payload) => {
-    console.log('payload dans createTask:', payload);
     const { data } = await axios.post(`${URL}/api/v1/tasks`, payload, {
       headers: { Authorization: getToken() },
     });
     return data;
-  },
+  }
 );
 
 export const updateTask = createAsyncThunk(
   "task/updateTask",
   async (payload) => {
-    const { data } = await axios.post(
+    const { data } = await axios.put(
       `${URL}/api/v1/tasks/${payload._id}`,
       payload,
       {
         headers: { Authorization: getToken() },
-      },
+      }
     );
     return data;
-  },
+  }
 );
 
 export const deleteTask = createAsyncThunk("task/deleteTask", async (id) => {
@@ -59,11 +61,12 @@ export const deleteTask = createAsyncThunk("task/deleteTask", async (id) => {
 export const deleteManyTask = createAsyncThunk(
   "task/deleteManyTask",
   async (payload) => {
-    const { data } = await axios.post(`${URL}/api/v1/delete-many`, payload, {
+    const { data } = await axios.delete(`${URL}/api/v1/tasks/batch`, {
       headers: { Authorization: getToken() },
+      data: payload,
     });
     return data;
-  },
+  }
 );
 
 const taskSlice = createSlice({
@@ -82,6 +85,12 @@ const taskSlice = createSlice({
     changeFilter: (state, action) => {
       state.filter = action.payload;
     },
+    setSearchQuery: (state, action) => {
+      state.searchQuery = action.payload;
+    },
+    setSelectedDate: (state, action) => {
+      state.selectedDate = action.payload;
+    },
   },
   extraReducers(builder) {
     builder
@@ -92,7 +101,7 @@ const taskSlice = createSlice({
         state.status = "success";
         state.tasks = [...action.payload];
       })
-      .addCase(getTask.rejected, (state) => {
+      .addCase(getTask.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
@@ -104,7 +113,7 @@ const taskSlice = createSlice({
         state.status = "success";
         if (deletedCount > 0) {
           state.tasks = state.tasks.filter(
-            (value) => ids.indexOf(value._id) == -1,
+            (value) => ids.indexOf(value._id) == -1
           );
         }
       })
@@ -112,7 +121,6 @@ const taskSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
       })
-
       .addCase(createTask.pending, (state) => {
         state.status = "loading";
         state.error = "";
@@ -133,7 +141,7 @@ const taskSlice = createSlice({
       .addCase(updateTask.fulfilled, (state, action) => {
         state.status = "success";
         state.tasks = state.tasks.map((todo) =>
-          todo._id === action.payload._id ? action.payload : todo,
+          todo._id === action.payload._id ? action.payload : todo
         );
         state.error = "";
       })
@@ -148,7 +156,7 @@ const taskSlice = createSlice({
       .addCase(deleteTask.fulfilled, (state, action) => {
         state.status = "success";
         state.tasks = state.tasks.filter(
-          (todo) => todo._id !== action.payload._id,
+          (todo) => todo._id !== action.payload._id
         );
         state.error = "";
       })
@@ -163,9 +171,11 @@ export const selectAllTasks = (state) => state.taskReducer.tasks;
 export const getTaskStatus = (state) => state.taskReducer.status;
 export const getTaskError = (state) => state.taskReducer.error;
 export const getFilter = (state) => state.taskReducer.filter;
-export const getCompleted = (state) => state.taskReducer.tasks.filter((task) => task.completed === true)
+export const getSearchQuery = (state) => state.taskReducer.searchQuery;
+export const getSelectedDate = (state) => state.taskReducer.selectedDate;
+export const getCompleted = (state) =>
+  state.taskReducer.tasks.filter((task) => task.isCompleted === true);
 
-
-export const { initState, setSatusToIdle, changeFilter} = taskSlice.actions;
+export const { initState, setSatusToIdle, changeFilter, setSearchQuery, setSelectedDate } = taskSlice.actions;
 
 export default taskSlice.reducer;

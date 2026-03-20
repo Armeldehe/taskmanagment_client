@@ -1,8 +1,11 @@
 import { Header, TodoCreate, TodoFilter, TodoList } from "../components";
+import SearchBar from "../components/SearchBar";
+import CalendarHorizontal from "../components/CalendarHorizontal";
 import { useDispatch, useSelector } from "react-redux";
-import { selectAllTasks, getFilter, getTask } from "../redux/slices/taskSlice";
+import { selectAllTasks, getFilter, getTask, getSearchQuery, getSelectedDate } from "../redux/slices/taskSlice";
 import { useEffect, useState } from "react";
 import { getState } from "../redux/slices/authSlice";
+import { motion } from "framer-motion";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -12,147 +15,130 @@ const Home = () => {
   );
 
   let tasks = useSelector(selectAllTasks);
-
-  let {
-    connectedUser: { _id },
-  } = useSelector(getState);
-
+  let auth = useSelector(getState);
+  let { _id, name } = auth.connectedUser || {};
   let filter = useSelector(getFilter);
+  let searchQuery = useSelector(getSearchQuery);
+  let selectedDateStr = useSelector(getSelectedDate);
 
-  const itemsLeft = tasks.filter((task) => !task.completed).length;
+  const getLocalDateString = (date = new Date()) => {
+    const offset = date.getTimezoneOffset();
+    const adjusted = new Date(date.getTime() - (offset * 60 * 1000));
+    return adjusted.toISOString().split('T')[0];
+  };
+
+  // Derive stats based on ALL tasks for the selected date, regardless of search/filter
+  const tasksForSelectedDate = tasks.filter(task => {
+    const dateToUse = task.dueDate ? new Date(task.dueDate) : new Date(task.createdAt || Date.now());
+    return getLocalDateString(dateToUse) === selectedDateStr;
+  });
+
+  const itemsLeft = tasksForSelectedDate.filter((task) => !task.isCompleted).length;
+  const completedItems = tasksForSelectedDate.length - itemsLeft;
+  const progress = tasksForSelectedDate.length === 0 ? 0 : Math.round((completedItems / tasksForSelectedDate.length) * 100);
 
   useEffect(() => {
-    dispatch(getTask(_id));
-  }, []);
+    if (_id) dispatch(getTask(_id));
+  }, [_id, dispatch]);
 
   useEffect(() => {
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
+  const toggleDarkMode = () => setDarkMode(!darkMode);
+
   const filteredTasks = () => {
-    switch (filter) {
-      case "all":
-        return tasks;
-      case "active":
-        return tasks.filter((task) => !task.completed);
-      case "completed":
-        return tasks.filter((task) => task.completed);
-      default:
-        return tasks;
+    let result = tasksForSelectedDate; // Start with date-filtered tasks
+
+    // Filter by search
+    if (searchQuery) {
+        result = result.filter(task => task.description.toLowerCase().includes(searchQuery.toLowerCase()));
     }
+
+    // Filter by status
+    switch (filter) {
+      case "active":
+        result = result.filter((task) => !task.isCompleted);
+        break;
+      case "completed":
+        result = result.filter((task) => task.isCompleted);
+        break;
+    }
+    
+    return result;
   };
 
   return (
-    <div
-      className={`min-h-screen w-screen ${
-        darkMode
-          ? "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
-          : "bg-gradient-to-br from-purple-600 via-blue-500 to-indigo-700"
-      }`}
-    >
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-        <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
+    <div className={`min-h-screen w-full transition-colors duration-700 text-slate-100 overflow-x-hidden relative selection:bg-pink-500/30 ${darkMode ? 'bg-[#0f172a]' : 'bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600'}`}>
+      {/* Spectacular Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className={`absolute top-0 right-0 w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen transition-all duration-1000 ${darkMode ? 'bg-gradient-to-b from-indigo-600/20 to-purple-600/20' : 'bg-white/10'}`}></div>
+        <div className={`absolute bottom-0 left-0 w-[50vw] h-[50vw] rounded-full blur-[120px] mix-blend-screen transition-all duration-1000 ${darkMode ? 'bg-gradient-to-tr from-pink-600/20 to-transparent' : 'bg-white/10'}`}></div>
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full blur-[150px] mix-blend-screen animate-pulse-glow transition-all duration-1000 ${darkMode ? 'bg-gradient-to-br from-blue-600/10 to-fuchsia-600/10' : 'bg-white/20'}`}></div>
+        
+        {/* Subtle noise/grid overlay */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8cGF0aCBkPSJNMCAwaDQwdjQwSDB6IiBmaWxsPSJub25lIi8+Cjxwb2x5Z29uIHBvaW50cz0iMCAwIDQwIDAgNDAgNDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDMpIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+')] opacity-40"></div>
       </div>
 
       <div className="relative z-10 w-full min-h-screen flex flex-col">
-        <Header
-          darkMode={darkMode}
-          toggleDarkMode={() => setDarkMode((prev) => !prev)}
-        />
-        <main className="flex-1 container mx-auto px-4 md:px-6 py-8 md:max-w-4xl">
-          <div className="space-y-6 animate-in fade-in duration-700">
-            {/* Statistics Card */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="backdrop-blur-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-xl p-6 border border-blue-400/40 hover:border-blue-300/70 transition-all duration-300 transform hover:scale-105">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-300/80 text-sm font-medium">
-                      Total de tâches
-                    </p>
-                    <p className="text-3xl font-bold text-blue-100 mt-2">
-                      {tasks.length}
-                    </p>
-                  </div>
-                  <div className="text-4xl opacity-60">📋</div>
-                </div>
-              </div>
-              <div className="backdrop-blur-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 rounded-xl p-6 border border-emerald-400/40 hover:border-emerald-300/70 transition-all duration-300 transform hover:scale-105">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-300/80 text-sm font-medium">
-                      Complétées
-                    </p>
-                    <p className="text-3xl font-bold text-green-100 mt-2">
-                      {tasks.filter((t) => t.completed).length}
-                    </p>
-                  </div>
-                  <div className="text-4xl opacity-60">✅</div>
-                </div>
-              </div>
-              <div className="backdrop-blur-xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 rounded-xl p-6 border border-orange-400/40 hover:border-orange-300/70 transition-all duration-300 transform hover:scale-105">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-orange-300/80 text-sm font-medium">
-                      En cours
-                    </p>
-                    <p className="text-3xl font-bold text-orange-100 mt-2">
-                      {itemsLeft}
-                    </p>
-                  </div>
-                  <div className="text-4xl opacity-60">⏳</div>
-                </div>
-              </div>
-            </div>
+        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
-            {/* Create Task */}
-            <div className="animate-in fade-in slide-in-from-bottom duration-700">
-              <TodoCreate />
+        <main className="flex-1 container mx-auto px-4 py-8 md:py-12 max-w-4xl relative">
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6"
+          >
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2">
+                Bonjour, {name?.split(' ')[0] || "Astronaute"} ✨
+              </h2>
+              <p className="text-white/70 text-base md:text-lg">
+                Vous avez <span className="text-pink-300 font-bold">{itemsLeft}</span> tâche{itemsLeft !== 1 ? 's' : ''} en attente pour cette date.
+              </p>
             </div>
-
-            {/* Tasks Section */}
-            {itemsLeft > 0 && (
-              <div className="space-y-4 animate-in fade-in duration-700">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <span className="text-blue-300 text-2xl">🎯</span>
-                    <span>Filtrer les tâches</span>
-                  </h2>
+            
+            {/* Minimal Progress Bar */}
+            {tasksForSelectedDate.length > 0 && (
+              <div className="w-full md:w-48 bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-md shadow-lg">
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-xs text-white/70 font-bold uppercase tracking-wider">Progression</span>
+                  <span className="text-sm font-bold text-white">{progress}%</span>
                 </div>
-                <TodoFilter />
+                <div className="h-2 w-full bg-black/20 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 rounded-full"
+                  />
+                </div>
               </div>
             )}
+          </motion.div>
 
-            {/* Tasks List */}
-            <div className="animate-in fade-in duration-700">
-              {filteredTasks().length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                      <span className="text-indigo-300 text-2xl">✅</span>
-                      <span>Vos tâches</span>
-                    </h2>
-                    <span className="ml-auto bg-indigo-500/30 text-indigo-200 px-3 py-1 rounded-full text-sm font-medium border border-indigo-500/50">
-                      {filteredTasks().length} tâche
-                      {filteredTasks().length > 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <TodoList tasks={filteredTasks()} />
-                </div>
-              ) : (
-                <div className="backdrop-blur-xl bg-white/10 rounded-xl p-12 border border-white/20 text-center">
-                  <div className="text-5xl opacity-80 mb-4">📭</div>
-                  <p className="text-white/70 text-lg">
-                    Aucune tâche à afficher
-                  </p>
-                  <p className="text-white/50 text-sm mt-2">
-                    Créez une nouvelle tâche pour commencer
-                  </p>
-                </div>
-              )}
-            </div>
+          {/* New UI Elements for Phase 6 */}
+          <SearchBar darkMode={darkMode} />
+          <CalendarHorizontal darkMode={darkMode} />
+
+          <div className="space-y-8">
+            <TodoCreate />
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="glass-panel rounded-3xl p-4 md:p-6 shadow-2xl overflow-hidden"
+            >
+              <div className="flex flex-col sm:flex-row justify-between flex-wrap gap-4 border-b border-white/20 pb-4 mb-4">
+                 <TodoFilter itemsLeft={itemsLeft} />
+              </div>
+              
+              <div className="min-h-[300px]">
+                <TodoList tasks={filteredTasks()} />
+              </div>
+            </motion.div>
           </div>
         </main>
       </div>

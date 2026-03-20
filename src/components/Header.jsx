@@ -1,7 +1,8 @@
 import React from "react";
-import { IconMoon, IconSun } from "./icons";
+import { LogOut, CheckCircle, Moon, Sun } from "lucide-react";
 import { initState } from "../redux/slices/authSlice";
 import { useDispatch } from "react-redux";
+import { motion } from "framer-motion";
 
 const Header = ({ darkMode, toggleDarkMode }) => {
   const dispatch = useDispatch();
@@ -10,44 +11,54 @@ const Header = ({ darkMode, toggleDarkMode }) => {
   };
 
   return (
-    <header className="backdrop-blur-xl bg-white/5 border-b border-white/10">
-      <div className="container mx-auto px-4 md:px-6 py-6 md:max-w-4xl">
+    <motion.header 
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="sticky top-0 z-50 w-full backdrop-blur-xl bg-[#0f172a]/70 border-b border-white/5 shadow-2xl"
+    >
+      <div className="container mx-auto px-4 md:px-6 py-4 md:max-w-4xl">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-r from-blue-400 to-purple-600 p-2 rounded-lg transform transition-transform duration-300 hover:scale-110">
-              <span className="text-white text-xl font-bold">✓</span>
+          <motion.div 
+            className="flex items-center gap-3 group cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-pink-500 rounded-xl blur-md opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-glow"></div>
+              <div className="relative bg-[#0f172a] p-2 rounded-xl border border-white/10">
+                <CheckCircle className="text-pink-400" size={24} strokeWidth={2.5} />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
               TaskPro
             </h1>
-          </div>
+          </motion.div>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
+          <div className="flex items-center gap-4">
+            <motion.button
+              whileHover={{ scale: 1.1, rotate: 180 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.3 }}
               onClick={toggleDarkMode}
-              className="p-3 rounded-lg bg-gradient-to-r from-blue-500/30 to-purple-500/30 hover:from-blue-500/50 hover:to-purple-500/50 border-2 border-blue-400/60 hover:border-blue-300 transition-all duration-300 transform hover:scale-110 text-white shadow-lg hover:shadow-blue-500/50"
+              className="relative p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-white hover:bg-white/10 transition-colors"
               title={darkMode ? "Mode clair" : "Mode sombre"}
             >
-              {darkMode ? (
-                <IconSun fill="#FBBF24" />
-              ) : (
-                <IconMoon fill="#BFDBFE" />
-              )}
-            </button>
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </motion.button>
 
-            <button
-              type="button"
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={onDisconnect}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-red-500/20 to-red-600/20 hover:from-red-500/40 hover:to-red-600/40 border-2 border-red-500/60 text-red-300 hover:text-red-100 transition-all duration-300 transform hover:scale-105 font-semibold text-sm shadow-lg hover:shadow-red-500/30"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 hover:border-pink-500/40 text-pink-300 hover:text-pink-100 transition-all font-semibold text-sm shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] group"
             >
-              <span className="text-lg">⎋</span>
-              <span>Déconnexion</span>
-            </button>
+              <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </motion.button>
           </div>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 };
 

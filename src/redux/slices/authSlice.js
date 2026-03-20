@@ -4,11 +4,14 @@ import axios from "axios";
 // const URL = 'http://localhost:3000'
 const URL = import.meta.env.VITE_URL;
 
+const savedUser = localStorage.getItem("user");
+const savedToken = localStorage.getItem("token");
+
 const initialState = {
-  connectedUser: null,
+  connectedUser: savedUser ? JSON.parse(savedUser) : null,
   profileImage: null,
-  isAuthenticated: false,
-  token: null,
+  isAuthenticated: !!savedToken,
+  token: savedToken || null,
   status: "idle", //'idle' | 'loading' | 'success' | 'failed'?
   IsOk: false,
   message: null,
@@ -47,6 +50,8 @@ const authSlice = createSlice({
       state.message = null;
       state.IsOk = false;
       state.token = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     },
   },
   extraReducers(builder) {
@@ -60,6 +65,7 @@ const authSlice = createSlice({
         } = action.payload;
         console.log("action.payload dans authSlice:", action.payload);
         localStorage.setItem("token", accessToken);
+        localStorage.setItem("user", JSON.stringify(user));
         state.connectedUser = user;
         state.isAuthenticated = true;
         state.status = "success";
