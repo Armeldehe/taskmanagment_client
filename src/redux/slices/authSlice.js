@@ -22,9 +22,16 @@ export const authenticate = createAsyncThunk("auth/login", async (payload) => {
   return data;
 });
 
-export const register = createAsyncThunk("auth/register", async (payload) => {
-  const { data } = await axios.post(`${URL}/api/v1/register`, payload);
-  return data;
+export const register = createAsyncThunk("auth/register", async (payload, { rejectWithValue }) => {
+  try {
+    const { data } = await axios.post(`${URL}/api/v1/register`, payload);
+    return data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      return rejectWithValue(error.response.data.message);
+    }
+    return rejectWithValue(error.message);
+  }
 });
 export const logout = createAsyncThunk("auth/logout", async (payload) => {
   const { data } = await axios.post(`${URL}/api/v1/logout`, payload);
@@ -90,7 +97,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.status = "failed";
-        state.message = action.error.message;
+        state.message = action.payload || action.error.message;
       })
       .addCase(activate.pending, (state) => {
         state.status = "loading";
